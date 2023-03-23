@@ -3,12 +3,12 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.listview import ListItemButton
+from kivy.uix.recycleview import RecycleView
 
 from kivy.properties import ObjectProperty, StringProperty, ListProperty
 from kivy.uix.screenmanager import ScreenManager, Screen,\
     ShaderTransition
-from kivy.adapters.listadapter import ListAdapter
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
 
 import datetime
 from data import Record, Base
@@ -33,10 +33,11 @@ class MyCustomScreen(Screen):
     def add_widget(self, widget, index=0):
         if (self.main_container is None):
             # if we haven't initialized main container yet, then add to the root
-            print >> sys.stderr, "Adding widget %s to the root " % widget 
+            print("Adding widget %s to the root " % widget, file=sys.stderr)
             super(MyCustomScreen, self).add_widget(widget, index)
         else:
-            print >> sys.stderr, "Adding widget %s to the main container " % widget 
+            print("Adding widget %s to the main container " % widget, file=sys.stderr)
+            
             self.main_container.add_widget(widget, index)
 
 
@@ -79,7 +80,7 @@ class SymptomDiaryApp(App):
         self.engine_path = engine_path
         super(SymptomDiaryApp, self).__init__(**kwargs)
         self.engine = create_engine(self.engine_path, echo=True)
-        Base.metadata.create_all(self.engine);
+        Base.metadata.create_all(self.engine)
 
 
         session_factory = sessionmaker(bind=self.engine)
@@ -124,34 +125,35 @@ class SymptomDiaryApp(App):
         
     def create_entry_by_date(self, date, time, notes):
         # first check if entry does not exist
+        print('mooo')
 
         if (self.find_entry_by_date(date) is None):
-            print "Will create entry for ", date
+            print("Will create entry for ", date)
             new_entry = Record(date_entered = date, notes = notes)
             session = self.getDBSession()
             session.add(new_entry)
             session.commit()
         else:
-            popup = ErrorPopup(                          
-                          'Cannot create entry for the date of ' + date.isoformat() + " because one already exists. You can edit it instead",
-                          )
+            popup = ErrorPopup(
+                f'Cannot create entry for the date of {date.isoformat()} because one already exists. You can edit it instead'
+            )
             popup.open()
 
 
         
     def display_entry_by_date(self, date):
-        print "Will display entry for: ", date
-        
+        print("Will display entry for: ", date)
+
         entryScreen = self.screen_manager.get_screen('entry')
-        
+
         entry = self.find_entry_by_date(date)        
-        
+
         if (entry is not None):
             entryScreen.fill_in(entry)
             self.screen_manager.current = 'entry'
         else:
-            popup = ErrorPopup('No entry for the date of ' + date.isoformat())
-                          
+            popup = ErrorPopup(f'No entry for the date of {date.isoformat()}')
+
             popup.open()
         
         
@@ -161,19 +163,22 @@ class SymptomDiaryApp(App):
 
 
 def usage():
-    print >> sys.stderr, "Error in command line arguments. Usage: %s [dbfile]".format(sys.argv[0])
+    print(sys.stderr, "Error in command line arguments. Usage: %s [dbfile]".format(sys.argv[0]))
     sys.exit(1)
     
 def main(argv):
-    if (len(argv) > 1):
+    if len(argv) > 1:
         usage()
 
     if len(argv) == 1:
         db_file = os.path.realpath(argv[0])
     else:
         script_dir = os.path.dirname(os.path.realpath(__file__))
-        db_file = script_dir + "/data/entries.db"                    
-    SymptomDiaryApp("sqlite:///" + db_file).run()
+        db_file = f"{script_dir}/data/entries.db"
+        
+    engine_path = f"sqlite:///{db_file}"
+    SymptomDiaryApp(engine_path).run()
+
     
     
 if __name__ == '__main__':

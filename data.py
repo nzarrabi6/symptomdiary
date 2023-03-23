@@ -25,7 +25,7 @@ class PainInfo(Base):
     __tablename__ = 'painlevel'
     record_id = Column(Integer, ForeignKey("entries.record_id"), primary_key=True)
     average_pain = Column(Integer, name='averagepain')
-    max_pain = Column(Integer(unsigned=True), name='maxpain')
+    max_pain = Column(Integer, name='maxpain')
     record = relationship("Record", backref=backref('pain_info', uselist=False))
     
     def __init__(self, record_id, averagepain=None, maxpain=None):
@@ -58,7 +58,7 @@ class PainSiteInfo(Base):
     __tablename__ = 'paindetail'
     record_id = Column(Integer, ForeignKey("entries.record_id"), primary_key=True)
     site_id = Column(Integer, ForeignKey("painsite.site_id"), primary_key=True)
-    painlevel = Column(Integer(unsigned=True))
+    painlevel = Column(Integer)
 
     record = relationship("Record", backref=backref('pain_site_info'))
     site = relationship("PainSite")
@@ -91,7 +91,7 @@ class SymptomInfo(Base):
 
     record_id = Column(Integer, ForeignKey("entries.record_id"), primary_key=True)
     symptom_id = Column(Integer, ForeignKey("symptom.symptom_id"), primary_key=True)
-    intensity = Column(Integer(unsigned=True))
+    intensity = Column(Integer)
 
     record = relationship("Record", backref=backref('symptom_info'))
     symptom = relationship("Symptom")
@@ -111,8 +111,8 @@ class Medication(Base):
     medication_id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     unit = Column(String, nullable=False)
-    dosage = Column(Integer(unsigned=True))
-    quantity = Column(Integer(unsigned=True), nullable=False)
+    dosage = Column(Integer)
+    quantity = Column(Integer, nullable=False)
     frequency = Column(String)
     active = Column(Boolean, nullable=False, default=True)
 
@@ -134,7 +134,7 @@ class MedicationInfo(Base):
 
     record_id = Column(Integer, ForeignKey("entries.record_id"), primary_key=True)
     medication_id = Column(Integer, ForeignKey("medication.medication_id"), primary_key=True)
-    quantity = Column(Integer(unsigned=True), nullable=False)
+    quantity = Column(Integer, nullable=False)
 
     record = relationship("Record", backref=backref('medication_info'))
     medication = relationship("Medication")
@@ -210,7 +210,7 @@ class ActivityInfo(Base):
     hours = Column(Integer)
     minutes = Column(Integer)
     
-    intensity = Column(Integer(unsigned=True))
+    intensity = Column(Integer)
 
     record = relationship("Record", backref=backref('activity_info'))
     activity = relationship("Activity")
@@ -230,7 +230,7 @@ class SleepInfo(Base):
 
     hours = Column(Integer, nullable=False)
     minutes = Column(Integer, nullable=False)
-    quality = Column(Integer(unsigned=True))
+    quality = Column(Integer)
     light_out_time = Column(Time)
     asleep_time = Column(Time)
     awake_time = Column(Time)

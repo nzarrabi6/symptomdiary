@@ -5,7 +5,7 @@ from kivy.uix.slider import Slider
 from kivy.garden.tickmarker import TickMarker
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, NumericProperty
+import kivy.properties as kyprops
 from kivy.uix.textinput import TextInput
 from kivy.clock import Clock
 import datetime
@@ -16,10 +16,10 @@ class StandardButton(Button):
 
 
 class SharedContentProperty(object):
-    shared_content = BooleanProperty(True)
+    shared_content = kyprops.BooleanProperty(True)
     def __init__(self, **kwargs):
         super(SharedContentProperty,self).__init__()
-        sc = kwargs.get('shared_content', None)
+        sc = kwargs.get('shared_content')
         if (sc is not None):
             self.shared_content(sc)    
 
@@ -37,7 +37,7 @@ class SharedLabel(Label,SharedContentProperty):
     pass
 
 class NumericLabel(Label):
-    value = NumericProperty(None, allownone=True)
+    value = kyprops.NumericProperty(None, allownone=True)
     
     def on_value(self, instance, v):
         if (v is not None):
@@ -47,7 +47,7 @@ class NumericLabel(Label):
 
 
 class TabbableTextInput(TextInput):
-    next = ObjectProperty()
+    next = kyprops.ObjectProperty()
  
     def __init__(self, **kwargs):
         super(TabbableTextInput, self).__init__(**kwargs)
@@ -68,7 +68,7 @@ class TabbableTextInput(TextInput):
 
 
 class NumericInputField(TabbableTextInput):
-    value = NumericProperty(None, allownone=True)
+    value = kyprops.NumericProperty(None, allownone=True)
     warning_color = (1, 0, 0, 1)
     # A place to save text color
     # Updated after we init from the default foreground color
@@ -104,7 +104,7 @@ class NumericInputField(TabbableTextInput):
 
 
 class TimeInputField(TabbableTextInput):
-    value = ObjectProperty(None, allownone=True)
+    value = kyprops.ObjectProperty(None, allownone=True)
     warning_color = (1, 0, 0, 1)
     # A place to save text color
     # Updated after we init from the default foreground color
@@ -140,7 +140,7 @@ class TimeInputField(TabbableTextInput):
 class NormalizedTextField(TabbableTextInput):
     """ A text field that sets value to None if text is empty, and strips empty space around the text in the value    
     """
-    value = StringProperty(None, allownone=True)
+    value = kyprops.StringProperty(None, allownone=True)
 
     def __init__(self, **kwargs):
         self.bind(text = lambda i,v: self._update_value())
@@ -184,7 +184,7 @@ class DBLowercaseTextField(NormalizedTextField):
 
 
 class ErrorPopup(Popup):
-    message_label = ObjectProperty()
+    message_label = kyprops.ObjectProperty()
     def __init__(self, text, **kvargs):
         super(ErrorPopup, self).__init__(**kvargs)
         self.message_label.text = text
@@ -192,7 +192,7 @@ class ErrorPopup(Popup):
 
 
 class SimpleInputPopup(Popup):
-    input_field = ObjectProperty()
+    input_field = kyprops.ObjectProperty()
     def __init__(self, text='', **kwargs):
         super(SimpleInputPopup, self).__init__(**kwargs)
         self.input_field.text = text
@@ -212,8 +212,8 @@ class SliderWithValue(BoxLayout):
         Also supports an "undefined" value, which is handled by having the "value" attribute be None
         while setting the actual slider value below minimum so that it is not visible
     '''
-    value = NumericProperty(None, allownone=True)
-    slider = ObjectProperty()
+    value = kyprops.NumericProperty(None, allownone=True)
+    slider = kyprops.ObjectProperty()
 
     
         
@@ -266,7 +266,7 @@ class EditPanelLabel(Label):
     pass
 
 class ScrollableTextDisplay(BoxLayout):
-    text = StringProperty()
+    text = kyprops.StringProperty()
 
 class ColorLabel(Label):
-    background_color = ObjectProperty()
+    background_color = kyprops.ObjectProperty()

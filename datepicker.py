@@ -18,7 +18,7 @@ from kivy.app import App
 import datetime
 from calendar import monthrange
 import sys
-from kivy.properties import ObjectProperty, StringProperty;
+import kivy.properties as kyprops
 import calendar
 
 from diary_widgets import ColorLabel
@@ -43,19 +43,19 @@ class DatePicker(BoxLayout):
     border_today = (20,20,20,20)
     
     ## This is bound to the text of the header label in kv, so if we change it, the label gets set
-    current_month_text = StringProperty()
+    current_month_text = kyprops.StringProperty()
 
     ## This is the start of the current month, changes as we browse
     month_start = None
     
-    body = ObjectProperty()
+    body = kyprops.ObjectProperty()
 
 
     
     def __init__(self, **kwargs):
         self.month_start = date.today().replace(day=1) 
         self.set_header()
-        super(DatePicker, self).__init__(**kwargs)         
+        super().__init__(**kwargs)         
         ### We cannot init the body here, it's not ready
         ### It can be inited dynamically using the on_body method
     
@@ -117,17 +117,29 @@ class DatePicker(BoxLayout):
 
     def date_clicked(self, date):
         ''' Main handler -- what to do once the date is selected '''
-        print >> sys.stderr, "Date clicked %s" % date
+        
+        print(sys.stderr, f"Date clicked {date}")
         application = App.get_running_app()
         entry = application.find_entry_by_date(date)
+        
+        print('omg', application, date, entry)
         if (entry is None):
-            self.create_entry_dialog(application, date)
+            print('ohh')
+            self.create_entry_dialog(application=application, date=date)
+            print('ahhhh')
         else:
             application.display_entry_by_date(date)
         
 
-    def create_entry_dialog(self, application, date):
-        popup = CreateEntryPopup(application, date)
+    def create_entry_dialog(self, application, date, notes="hi"):
+        print(application, date,'nikou')
+        #application.
+        
+        #popup=Popup(title="Create new entry",content=DatePicker(),size_hint=(None, None), size=(400, 150),auto_dismiss=False)
+        application.create_entry_by_date(date, datetime.datetime.now().time(),
+                                              notes)
+        application.display_entry_by_date(date)
+        
         popup.open()
 
 
@@ -149,23 +161,24 @@ class DatePicker(BoxLayout):
 
 
 class CreateEntryPopup(Popup):
-    entry_date = ObjectProperty()
-    entry_form = ObjectProperty()
-    application = None
+    global popup
+    cont=DatePicker().on_body()
 
-    def __init__(self, application, date, **kwargs):
-        self.entry_date = date;
-        self.application = application
-        super(CreateEntryPopup, self).__init__(**kwargs)         
+    popup=Popup(title="Create new entry",content=cont,size_hint=(None, None), size=(400, 150),auto_dismiss=False)
+
     
-    def create_entry(self):
-        self.application.create_entry_by_date(self.entry_date, 
-                                              datetime.datetime.now().time(),
-                                              self.entry_form.note_input_box.text)
-        self.application.display_entry_by_date(self.entry_date)
-        self.dismiss()
+
+    def call_pops(self,val):
+        if val==1:
+            self.close_pops()
+        elif val==0:
+            popup.open()
+
+    def close_pops(self):
+        
+        popup.dismiss()
 
 
 class CreateEntryForm(BoxLayout):
-    note_input_box = ObjectProperty()
-    entry_date = ObjectProperty()    
+    note_input_box = kyprops.ObjectProperty()
+    entry_date = kyprops.ObjectProperty()    

@@ -75,7 +75,7 @@ class SleepEditBlock(EditBlock):
     def update_record(self):
         '''Update the record with fields from the block'''
         
-        print >> sys.stderr, "Updating record in sleep edit block"
+        print(sys.stderr, "Updating record in sleep edit block")
         
         if (self.record.sleep_info is None):
             ### we need t create a new pain info

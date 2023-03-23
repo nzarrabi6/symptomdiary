@@ -3,8 +3,8 @@ from kivy.properties import StringProperty, ObjectProperty, BooleanProperty
 from kivy.uix.popup import Popup
 from main import SymptomDiaryApp
 import sys
-from kivy.adapters.listadapter import ListAdapter
-from kivy.uix.listview import ListItemButton
+#from kivy.adapters.listadapter import ListAdapter
+from kivy.uix.recycleview import RecycleView
 
 
 class InfoBlock(BoxLayout):
@@ -140,112 +140,62 @@ class ListSummaryInfoBlock(InfoBlock):
 
 
 
-class ListManagePopup(Popup): 
+class ListManagePopup(Popup):
     record = None
     list_content = ObjectProperty()
     item_class = None
 
     def __init__(self, record, **kwargs):
-        super(ListManagePopup,self).__init__(**kwargs)
+        super(ListManagePopup, self).__init__(**kwargs)
         self.record = record
         self._fill_in()
 
     def on_list_content(self, instance, v):
-        self.list_content.adapter = ListAdapter(data=[], 
-                                                cls = ListItemButton,
-                                                args_converter=self.list_item_render,
-                                                allow_empty_selection = False,
-                                                selection_mode = 'single'
-                                                )
-        # See issue https://github.com/kivy/kivy/issues/1321
-        self.list_content.adapter.bind_triggers_to_view(self.list_content._trigger_reset_populate)
-        self._fill_in()
-                
-                
-                
+        self.list_content.data = self.find_all_items()
+
     def _fill_in(self):
         if (self.list_content is not None):
-            self.list_content.adapter.data = self.find_all_items()
-    
+            self.list_content.data = self.find_all_items()
+
     def find_all_items(self):
         if (self.item_class is None):
             raise Exception("Item class not defined in ListManagePopup. "
                             + "It must be defined as part of init, "
                             + " before the parent constructor call")
-        app = SymptomDiaryApp.get_running_app()  
+        app = SymptomDiaryApp.get_running_app()
         session = app.getDBSession()
         return session.query(self.item_class).all()
 
-    def list_item_render(self, row_index, list_obj):
-        '''
-        Attempt to render a list item. Provides standard format for active vs. inactive
-        Calls describe_list_item, which must be defined in all derived classes, to get actual descriptions
-        '''
-        text = self.describe_list_item(list_obj)
-        if (not list_obj.active):
-            text = text + " (inactive)"
-        return {'text': text,
-                'size_hint_y': None,
-                'height': 25,
-                'color': (1, 1, 1, 1) if list_obj.active else (1, 1, 1, 0.5)
-                }
-
-    def describe_list_item(self, obj):
-        raise Exception("describe_list_item must be defined in class %s, a descendant of ListManagePopup" % self.__class__)
-
-
     def new_list_item(self):
-        # We want another edit popup
         new_record = self.create_new_record()
         new_site_popup = self.create_edit_popup(new_record)
-        new_site_popup.bind(on_save_finished = lambda ev: self._add_new_record(new_record))
+        new_site_popup.bind(on_save_finished=lambda ev: self._add_new_record(new_record))
         new_site_popup.open()
 
-  
     def _add_new_record(self, record):
-        app = SymptomDiaryApp.get_running_app()  
+        app = SymptomDiaryApp.get_running_app()
         session = app.getDBSession()
-                
-        # Activity edit popup performs validation. It won't be dismissed
-        # unless the record is validated and has no duplicates in the DB
-        # Therefore, we do not attempt to validate it here        
         session.add(record)
-        # We need to call flush so that ps site id will be defined        
         session.flush()
-
-        # we now update the display
-        # Editing list data is messy, so for now we just refill
-        # FIXME: figure out how to append the data
         self._fill_in()
-     
-     
+
     def edit_selected_item(self):
-        ### For completely unexplainable reasons, an event can be fired during initialization, making button pressed
-        ### If we haven't initialized the list yet, drop it
-        ### It is not at all clear why it would fire, seems a Kivy bug
-        if (self.list_content is None):
-            return
-        popup = self.create_edit_popup(self.list_content.adapter.data[self.list_content.adapter.selection[0].index])
-        popup.bind(on_dismiss = self.edit_finished)
+        popup = self.create_edit_popup(self.list_content.data[self.list_content.layout_manager.selected_nodes[0]])
+        popup.bind(on_dismiss=self.edit_finished)
         popup.open()
-    
+
     def edit_finished(self, edit_popup):
-        '''Update the list view when edit is finished. Make sure we return false because otherwise popup won't be dismissed'''
-        # Below is a workaround for ListView not functioning properly
-        # We need to delete cached view, otherwise the adatper won't redraw
-        # And then reset_populate will trigger a redraw
-        self.list_content.adapter.delete_cache()
-        self.list_content._trigger_reset_populate()
+        self.list_content.refresh_from_data()
         return False
- 
+
     def cancel_edits(self):
-        app = SymptomDiaryApp.get_running_app()  
+        app = SymptomDiaryApp.get_running_app()
         session = app.getDBSession()
         session.rollback()
         self.dismiss()
-        
+
     def save_edits(self):
-        app = SymptomDiaryApp.get_running_app()  
+        app = SymptomDiaryApp.get_running_app()
         session = app.getDBSession()
         session.commit()
         self.dismiss()
@@ -253,7 +203,7 @@ class ListManagePopup(Popup):
     def create_edit_panel(self, record):
         raise Exception("create_edit_panel must be defined in class %s, a descendant of ListManagePopup" % self.__class__)
 
-    def create_new_record(self, record):
+    def create_new_record(self):
         raise Exception("create_new_record must be defined in class %s, a descendant of ListManagePopup" % self.__class__)
 
     def create_edit_popup(self, record):
@@ -263,7 +213,6 @@ class ListManagePopup(Popup):
         entry_edit_block.add_edit_panel(panel)
         popup.add_edit_block(entry_edit_block)
         return popup
-
 
 class ListManagerEditBlock(BoxLayout):
     active = BooleanProperty(True)

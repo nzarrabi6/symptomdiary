@@ -1,4 +1,3 @@
-#:import la kivy.adapters.listadapter.ListAdapter
 #:import dp datepicker.DatePicker
  
 <MyCustomScreen>: 
@@ -38,6 +37,7 @@
                 text: 'OK'
                 on_press: root.create_entry()
 
+
 <CreateEntryForm>:
     canvas.before:
         Color:
@@ -68,7 +68,6 @@
         id: note_input
         multiline: True
         size_hint: (1,1)
-
 
 
 <EntryScreen>:
